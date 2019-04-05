@@ -57,10 +57,3 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV -DGEANT4_INSTALL_DATA=ON ../geant4.10.05
     make -j8 install
     echo "source $VIRTUAL_ENV/bin/geant4.sh" >> $VIRTUAL_ENV/bin/activate
-
-    #Install g4py
-    cd $VIRTUAL_ENV/src/
-    hg clone https://bitbucket.org/seibert/g4py#geant4.9.5.p01
-    cd g4py
-    ./configure linuxx8664gcc --prefix=$VIRTUAL_ENV --with-g4-incdir=$VIRTUAL_ENV/include/Geant4 --with-g4-libdir=$VIRTUAL_ENV/lib --libdir=$VIRTUAL_ENV/lib/python2.7/site-packages/ --with-clhep-libdir=$VIRTUAL_ENV/lib --with-clhep-lib=G4clhep --with-python-libdir=$VIRTUAL_ENV/lib --with-boost-libdir=/usr/lib/x86_64-linux-gnu
-    make -j8 install
