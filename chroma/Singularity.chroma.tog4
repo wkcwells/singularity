@@ -50,10 +50,28 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
 
     #Install GEANT4 - Note: we are no longer installing cmake - the base build should have it
     cd $VIRTUAL_ENV/src/
-    wget http://geant4.cern.ch/support/source/geant4.10.05.tar.gz
+    wget http://geant4-data.web.cern.ch/geant4-data/releases/source/geant4.10.05.tar.gz
     tar xvf geant4.10.05.tar.gz
     mkdir geant4.10.05-build
     cd geant4.10.05-build
-    cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV -DGEANT4_INSTALL_DATA=ON ../geant4.10.05
+    cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV  -DGEANT4_INSTALL_DATA=ON -DGEANT4_USE_QT=OFF -DGEANT4_USE_RAYTRACER_X11=OFF -DGEANT4_USE_SYSTEM_EXPAT=OFF  -DGEANT4_USE_OPENGL_X11=ON  ../geant4.10.05
     make -j8 install
     echo "source $VIRTUAL_ENV/bin/geant4.sh" >> $VIRTUAL_ENV/bin/activate
+
+    ## Install custom chroma g4py
+    #cd $VIRTUAL_ENV/src/
+    #hg clone https://bitbucket.org/seibert/g4py#geant4.9.5.p01
+    #cd g4py
+    #./configure linuxx8664gcc --prefix=$VIRTUAL_ENV --with-g4-incdir=$VIRTUAL_ENV/include/Geant4 --with-g4-libdir=$VIRTUAL_ENV/lib --libdir=$VIRTUAL_ENV/lib/python2.7/site-packages/ --with-clhep-libdir=$VIRTUAL_ENV/lib --with-clhep-lib=G4clhep --with-python-libdir=$VIRTUAL_ENV/lib --with-boost-libdir=/usr/lib/x86_64-linux-gnu
+    #make -j8 install
+
+    ## Install stock g4py
+    cd $VIRTUAL_ENV/src/
+    cd geant4.10.05/environments
+    mkdir g4py-build
+    cd g4py-build
+    export GEANT4_INSTALL=/app/chroma_env
+    cmake ../g4py
+    make -j8 install
+
+    # Add a comment to trigger a new singularity build
