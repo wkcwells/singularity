@@ -3,6 +3,10 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
 
 %labels
     AUTHOR ako.jamil@yale.edu
+    AUTHOR kevin.wells@stanford.edu
+
+%files
+    /vagrant_data/activate-kw /     # Temporary hack because something is broken
 
 %environment
     export PATH=/usr/local/cuda/bin:$PATH
@@ -15,10 +19,15 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     add-apt-repository ppa:saiarcot895/myppa
     apt-get -y update
     apt-get -y install apt-fast
-    apt-fast -y install python-pygame python-matplotlib python-virtualenv build-essential xorg-dev python-dev libglu1-mesa-dev  freeglut3-dev uuid-dev liblapack-dev mercurial git subversion libatlas-base-dev libbz2-dev
+    # Note: removed mercurial from here because custom g4py does not require it
+    apt-fast -y install python-pygame python-matplotlib python-virtualenv build-essential xorg-dev python-dev libglu1-mesa-dev  freeglut3-dev uuid-dev liblapack-dev git subversion libatlas-base-dev libbz2-dev
     apt-fast -y install wget curl cmake libboost-all-dev libsdl1.2-dev  libatlas-base-dev libxerces-c-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev
     apt-fast -y install libx11-dev libxpm-dev libxft-dev libxext-dev libgsl-dev libpng-dev libjpeg-dev gcc g++
+    apt-fast -y install vim htop
 
+    apt -y upgrade      # This was necessary to install Emacs
+
+    # Probably no longer necessary
     echo "[ui]\ntls = False" > $HOME/.hgrc
 
     export APP_DIR=/app/
@@ -35,7 +44,16 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     cd $APP_DIR/chroma_env/bin/
     export PATH=/usr/local/cuda/bin:$PATH
     export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
-    . $APP_DIR/chroma_env/bin/activate
+    
+    # Activate the virtual environment
+    # This hackery is necessary because 'source' doesn't work in the build environment
+    # Another component of the hack was: alias source="."
+    # This is one big hack.  But it was working I'm 99% sure.  Now it's not
+    #cp -p -r /vagrant_data/activate-kw /app/chroma_env/bin/activate-kw    # Would really like to use "files" for this - but the structure is not setup in time for that
+    # Moving to a different hack
+    cp -p -r /activate-kw /app/chroma_env/bin
+    . $APP_DIR/chroma_env/bin/activate-kw
+
     mkdir $VIRTUAL_ENV/src/
     cd $VIRTUAL_ENV/src/
 
@@ -58,7 +76,7 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     make -j8 install
     echo "source $VIRTUAL_ENV/bin/geant4.sh" >> $VIRTUAL_ENV/bin/activate
 
-    ## Install chroma custom g4py
+    ##Install Seibert g4py
     #cd $VIRTUAL_ENV/src/
     #hg clone https://bitbucket.org/seibert/g4py#geant4.9.5.p01
     #cd g4py
@@ -69,8 +87,7 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     ## May need this??
     ## -DCMAKE_PREFIX_PATH=/Users/kwells/Development/physics/chroma_env
     cd $VIRTUAL_ENV/src/
-    rm -rf g4py*        # Temporary
-    hg clone git clone https://github.com/wkcwells/g4py.git
+    git clone -b g4.10.05-rebase --single-branch https://github.com/wkcwells/g4py.git
     mkdir g4py-build
     cd g4py-build
     cmake -DGEANT4_INSTALL=/app/chroma_env ../g4py
@@ -79,8 +96,32 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     ## Install stock g4py
     #cd $VIRTUAL_ENV/src/
     #cd geant4.10.05/environments
+    #rm -rf g4py-build        # Temporary
     #mkdir g4py-build
     #cd g4py-build
     #export GEANT4_INSTALL=/app/chroma_env
     #cmake ../g4py
     #make -j8 install
+
+    pip install mercurial
+
+    #Install Chroma
+    pip install -U numpy==1.8.2
+    pip install -U matplotlib==2.2.3
+    pip install h5py
+    pip download pyublas
+    tar xvf PyUblas-2017.1.tar.gz
+    cd PyUblas-2017.1/
+    echo "def use_setuptools(): pass" > distribute_setup.py
+    python setup.py install
+    #### TEMPORARY
+    #rm $VIRTUAL_ENV/local/lib
+    ####
+    ln -s $VIRTUAL_ENV/lib $VIRTUAL_ENV/local/lib
+    #pip install -e hg+http://bitbucket.org/chroma/chroma#egg=Chroma
+    
+    ## Install KW custom chroma g4py
+    hg clone https://kcwells@bitbucket.org/kcwells/chroma
+    cd chroma/
+    hg update wip-KW
+    python setup.py develop
