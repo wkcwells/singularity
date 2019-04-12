@@ -1,0 +1,23 @@
+Bootstrap: docker
+From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
+
+%labels
+    AUTHOR ako.jamil@yale.edu
+
+%environment
+    export PATH=/usr/local/cuda/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
+
+%post
+    echo "Shell is: "$SHELL
+
+    export APP_DIR=/app/
+    alias source="."    # This is because sh does not have source
+    source $APP_DIR/chroma_env/bin/activate-kw
+
+    #Install KW custom chroma
+    #pip install -e hg+http://bitbucket.org/kwells/chroma#egg=Chroma
+    hg clone https://kcwells@bitbucket.org/kcwells/chroma
+    cd chroma/
+    hg update wip-KW
+    python setup.py develop

@@ -121,7 +121,7 @@ From: nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
     #pip install -e hg+http://bitbucket.org/chroma/chroma#egg=Chroma
     
     ## Install KW custom chroma g4py
-    hg clone https://kcwells@bitbucket.org/kcwells/chroma
-    cd chroma/
-    hg update wip-KW
-    python setup.py develop
+    #hg clone https://kcwells@bitbucket.org/kcwells/chroma
+    #cd chroma/
+    #hg update wip-KW
+    #python setup.py develop
