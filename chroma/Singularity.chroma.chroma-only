@@ -27,7 +27,7 @@ From: kwells/chroma
     git clone -b g4.10.05-rebase --single-branch https://github.com/wkcwells/g4py.git
     mkdir g4py-build
     cd g4py-build
-    cmake -DGEANT4_INSTALL=$VIRTUAL_ENV -DCMAKE_PREFIX_PATH=$VIRTUAL_ENV/lib/python/site-packages ../g4py
+    cmake -DGEANT4_INSTALL=$VIRTUAL_ENV -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/lib/python/site-packages ../g4py
     make -j8 install
 
     pip install mercurial
