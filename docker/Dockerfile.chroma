@@ -1,0 +1,54 @@
+# Use an official Python runtime as a parent image
+FROM kwells/chroma:base
+
+# Set the working directory to /app
+#WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+ADD   ./activate-kw /app/chroma_env/bin
+
+# This doesn't actually set $PATH?  But it does set $VIRTUAL_ENV
+RUN    bash $APP_DIR/chroma_env/bin/activate-kw
+
+## Install KW custom chroma g4py
+WORKDIR    $VIRTUAL_ENV/src
+RUN    git clone -b g4.10.05-rebase --single-branch https://github.com/wkcwells/g4py.git
+RUN    mkdir g4py-build
+WORKDIR    $VIRTUAL_ENV/src/g4py-build
+RUN    cmake -DGEANT4_INSTALL=$VIRTUAL_ENV -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV/lib/python2.7/site-packages ../g4py
+RUN    make -j8 install
+
+# This is a hack
+ENV    PATH $PATH:$VIRTUAL_ENV/bin
+RUN    pip install mercurial
+
+#Install Chroma
+WORKDIR    $VIRTUAL_ENV/src
+RUN    pip install -U numpy==1.8.2
+RUN    pip install -U matplotlib==2.2.3
+RUN    pip install h5py
+RUN    pip download pyublas
+RUN    pip install pyzmq
+RUN    tar xvf PyUblas-2017.1.tar.gz
+WORKDIR    $VIRTUAL_ENV/src/PyUblas-2017.1/
+RUN    echo "def use_setuptools(): pass" > distribute_setup.py
+RUN    /bin/bash -c "source $VIRTUAL_ENV/bin/activate && python setup.py install"
+RUN    ln -s $VIRTUAL_ENV/lib $VIRTUAL_ENV/local/lib
+
+#pip install -e hg+http://bitbucket.org/chroma/chroma#egg=Chroma
+    
+## Install KW custom chroma
+WORKDIR    $VIRTUAL_ENV/src
+RUN    hg clone https://kcwells@bitbucket.org/kcwells/chroma
+WORKDIR    $VIRTUAL_ENV/src/chroma
+RUN    hg update wip-KW
+RUN    /bin/bash -c "source $VIRTUAL_ENV/bin/activate && python setup.py develop"
+
+WORKDIR /usr/local/cuda/lib64
+RUN ln -s stubs/libcuda.so .
+RUN ln -s libcuda.so libcuda.so.1
+RUN alias v="ls -laFG"
+RUN alias hgr='history | grep'
+
+# Run app.py when the container launches
+#CMD ["python", "app.py"]
